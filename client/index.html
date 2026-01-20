@@ -5,75 +5,16 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>매슬로우의 욕구이론</title>
 
-    <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        .maslow-needs { margin: 100px auto; text-align: center; }
-        .pyramid { list-style: none; display: flex; flex-direction: column; align-items: center; justify-content: center; }
-        .pyramid > li { height: 160px; display: flex; flex-direction: column; align-items: center; justify-content: center; }
-        .needs-title { font-weight: bold; font-size: 20px; margin-bottom: 10px; }
-        .self-actualization { width: 200px; height: 160px; background-color: transparent; position: relative; }
-        .self-actualization::before { z-index: -1; display: block; content: ''; box-sizing: border-box; width: 200px; height: 160px; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background-color: transparent; border-left: 100px solid transparent; border-right: 100px solid transparent; border-bottom: 160px solid #DFF5EA; }
-        .esteem { width: 400px; height: 160px; background-color: transparent; position: relative; }
-        .esteem::before { z-index: -1; display: block; content: ''; box-sizing: border-box; width: 400px; height: 160px; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background-color: transparent; border-left: 100px solid transparent; border-right: 100px solid transparent; border-bottom: 160px solid #BFE6D3; }
-        .love_belonging { width: 600px; height: 160px; background-color: transparent; position: relative; }
-        .love_belonging::before { z-index: -1; display: block; content: ''; box-sizing: border-box; width: 600px; height: 160px; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background-color: transparent; border-left: 100px solid transparent; border-right: 100px solid transparent; border-bottom: 160px solid #9ED9D5; }
-        .safety { width: 800px; height: 160px; background-color: transparent; position: relative; }
-        .safety::before { z-index: -1; display: block; content: ''; box-sizing: border-box; width: 800px; height: 160px; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background-color: transparent; border-left: 100px solid transparent; border-right: 100px solid transparent; border-bottom: 160px solid #7FC9D9; }
-        .physiological { width: 1000px; height: 160px; background-color: transparent; position: relative; }
-        .physiological::before { z-index: -1; display: block; content: ''; box-sizing: border-box; width: 1000px; height: 160px; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background-color: transparent; border-left: 100px solid transparent; border-right: 100px solid transparent; border-bottom: 160px solid #A7CFEA; }
-    </style>
+    <link rel="stylesheet" href="./css/style.css">
 </head>
 <body>
-    <header>
-        <nav>
-            <ul>
-                <li>
-                    <button>매슬로우의 욕구이론</button>
-                </li>
-                <li>
-                    <button>론이구욕 의우로슬매</button>
-                </li>
-            </ul>
-        </nav>
-    </header>
-
-    <main class="maslow-needs">
-        <ul class="pyramid">
-            <li class="self-actualization">
-                <div>
-                    <p class="needs-title">자아 실현의 욕구</p>
-                    <p class="needs-content">자신의 잠재력을 최대한<br>개발하고자 하는 욕구</p>
-                </div>
-            </li>
-            <li class="esteem">
-                <div>
-                    <p class="needs-title">존경의 욕구</p>
-                    <p class="needs-content">자존감, 성취, 유능함, 자아존중 및<br>타인에게 인정받고 존중받고자 하는 욕구</p>
-                </div>
-            </li>
-            <li class="love_belonging">
-                <div>
-                    <p class="needs-title">소속과 사랑의 욕구</p>
-                    <p class="needs-content">다른 사람들로부터 인정을 받고 사랑받기를 원하며<br>집단에 소속하기를 바라는 욕구</p>
-                </div>
-            </li>
-            <li class="safety">
-                <div>
-                    <p class="needs-title">안전 욕구</p>
-                    <p class="needs-content">안전감과 안정의 욕구이며 위험과<br>공포 사고, 박탈 등으로 안전하고자 하는 욕구</p>
-                </div>
-            </li>
-            <li class="physiological">
-                <div>
-                    <p class="needs-title">생리적 욕구</p>
-                    <p class="needs-content">인간의 의식주와 관련된 생명을 유지하는 욕구,<br>배고픔과 갈증을 해소하려는 욕구</p>
-                </div>
-            </li>
-        </ul>
-    </main>
-
-    <footer>
-        <p>와 생각보다 진짜 공부할거 개많음 맨날 밀림 어카냐 ㄹㅇ</p>
-    </footer>
+    <!-- header.html 영역 -->
+    {{header}}
+    
+    <!-- body.html 영역 -->
+    {{body}}
+    
+    <!-- footer.html 영역 -->
+    {{footer}}
 </body>
 </html>

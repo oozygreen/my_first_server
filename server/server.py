@@ -1,69 +1,96 @@
 from http.server import HTTPServer, BaseHTTPRequestHandler
-# http.server라는 표준 라이브러리에서 HTTPServer와 BaseHTTPRequestHandler 클래스를 임포트
 
 class MyRequestHandler(BaseHTTPRequestHandler):
-# BaseHTTPRequestHandler라는 부모 클래스를 상속받아 MyRequestHandler라는 새로운 클래스를 정의
-# BaseHTTPRequestHandler에서 요청을 받으면 처리는 MyRequestHandler 클래스의 매뉴얼을 따르도록 함
     def do_GET(self):
-    # do_GET 의 이름은 BaseHTTPRequestHandler 클래스에서 미리 정의된 메서드 이름이므로 변경하면 안 됨
-    # 클라이언트가 GET 요청을 보낼 때마다 이 메서드가 호출됨
+        # 1. 경로 결정 (Routing)
+        path = self.path
+        # self.path는 요청된 URL의 경로 부분을 나타냄
 
-        # ---------- 기본 서버 구동 로직 ----------
-        #self.send_response(200)
-        # 200은 성공을 의미하는 HTTP 상태 코드
-        # if문 등으로 요청 경로에 따라 다른 응답을 보내도록 확장할 수 있음
-        # self.send_header('Content-type', 'text/html; charset=utf-8')
-        # 응답 헤더 설정, 여기서는 콘텐츠 타입을 HTML로 지정(UTF-8 인코딩 포함)
-        # self.end_headers()
-        # 헤더 설정이 끝났음을 알림
-        # message = "<h1>안녕하세요! 파이썬 서버입니다.</h1>"
-        # 응답 본문 설정 -> 현재 서버 구동 확인용으로 간결하게 작성했지만 추후 HTML 파일을 읽어와서 응답할 예정
-        # self.wfile.write(message.encode('utf-8'))
-        # 응답 본문을 클라이언트로 전송, 문자열을 바이트로 인코딩하여 전송
-        # -----------------------------------------
+        if path == '/':
+            path = '/index.html'
+        # 만약 경로가 기본페이지('/)라면 index.html을 보여주도록 설정
+        
+        file_path = f'client{path}'
+        # 실제 파일 경로 설정(실게 서버 컴퓨터 내의 폴더 경로와 사용자가 요청한 경로를 조합)
+        # 결과값은 'client/index.html', 'client/css/style.css' 등으로 설정됨
 
-        # ---------- 클라이언트 UI 출력을 위한 고도화 및 404에러 예외처리 ----------
-        if self.path == '/':
-            file_path = 'client/index.html'
-        else:
-            file_path = 'client/404error.html'
-
-        content_type = 'text/plain'
+        # 2. 확장자에 따른 Content-Type 결정
+        # 브라우저에게 서버가 보내는 데이터가 어떤 종류의 파일인지 알려주기 위함
         if file_path.endswith('.html'):
             content_type = 'text/html'
+        elif file_path.endswith('.css'):
+            content_type = 'text/css'
+        elif file_path.endswith('.js'):
+            content_type = 'application/javascript'
+        else:
+            # 지정되지 않은 확장자는 모두 일반 텍스트로 처리
+            content_type = 'text/plain'
 
+        # 3. 파일 읽기 및 전송
         try:
-            # 파일 읽기 및 응답 전송
-            with open(file_path, 'rb') as f:
-                # 'rb' (read binary) 모드는 텍스트와 이미지 모두 처리가 가능
-                content = f.read()
-                
+            if file_path.endswith('.html'):
+                with open(file_path, 'r', encoding='utf-8') as f:
+                # 만약 파일이 HTML일 경우, 내용을 조립해야 하므로 텍스트 모드('r')로 열기
+                    content = f.read()
+                    # 파일 객체 f가 가리키고 있는 데이터 전체를 읽어서 메모리(RAM)로 로드해서 content 변수에 저장
+
+                # index.html일 경우에 분리된 조각 파일들을 조립
+                if file_path == 'client/index.html':
+                    # 각 컴포넌트 파일(header, body, footer)을 읽어와 각각의 변수에 저장
+                    with open('client/html/header.html', 'r', encoding='utf-8') as h:
+                        header_content = h.read()
+                    with open('client/html/body.html', 'r', encoding='utf-8') as b:
+                        body_content = b.read()
+                    with open('client/html/footer.html', 'r', encoding='utf-8') as f_low:
+                        footer_content = f_low.read()
+
+                    # 메인 파일(index.html) 내의 예약어({{...}})를 실제 파일 내용으로 갈아끼움
+                    content = content.replace('{{header}}', header_content)
+                    content = content.replace('{{body}}', body_content)
+                    content = content.replace('{{footer}}', footer_content)
+
+                # 최종 조립된 HTML 전송
                 self.send_response(200)
-                self.send_header('Content-type', f'{content_type}; charset=utf-8')
+                self.send_header('Content-type', 'text/html; charset=utf-8')
                 self.end_headers()
-                self.wfile.write(content)
-                
+                self.wfile.write(content.encode('utf-8'))
+            
+            # HTML 외의 파일(CSS, JS, 이미지 등)은 내용 수정 없이 원본 그대로 보냄
+            else:
+                with open(file_path, 'rb') as f:
+                # 바이너리 읽기 모드('rb')로 읽어 별도의 인코딩 과정 없이 데이터 덩어리 자체를 가져옵니다.
+                    content = f.read()
+                    self.send_response(200)
+                    self.send_header('Content-type', f'{content_type}; charset=utf-8')
+                    self.end_headers()
+                    self.wfile.write(content)
+
+        # 만약 요청한 경로에 실제 파일이 존재하지 않는 경우 예외 처리를 수행 
         except FileNotFoundError:
-            # 파일을 찾을 수 없을 때 404 에러 응답
-            self.send_error(404, f"File Not Found: {file_path}")
+            # 1. 지정된 404 페이지 파일을 읽어옵니다. (인코딩 필수!)
+            try:
+                with open('client/404error.html', 'r', encoding='utf-8') as f:
+                    error_content = f.read()
+                
+                # 2. HTTP 응답 형식을 갖춰서 전송합니다.
+                self.send_response(404) # 상태 코드는 당연히 404!
+                self.send_header('Content-type', 'text/html; charset=utf-8')
+                self.end_headers()
+                self.wfile.write(error_content.encode('utf-8'))
+                
+            except Exception as e:
+                # 만약 404 페이지 파일 자체를 못 찾는 비상 사태라면?
+                # 이때는 브라우저 기본 에러 메시지를 보냅니다.
+                self.send_error(404, f"File Not Found: {file_path}")
 
-        
-    # POST가 필요하면 def do_POST(self):를 아래에 똑같이 정의해주면 됩니다. 메서드별로 함수를 따로 생성
-
-host = 'localhost' # 서버 호스트 주소 설정
-# localhost는 전세계적으로 컴퓨터 자신을 가리키는 표준 호스트 이름
-# 컴퓨터 운영체제의 hosts 파일을 직접 수정하여 localhost가 다른 IP 주소를 가리키도록 변경할 수는 있음
-port = 7777 # 서버 포트 번호 설정
-# 0~65535 사이의 포트 번호를 사용할 수 있지만, 1024 미만의 포트는 시스템 예약 포트이므로 피하는 것이 좋음
+host = 'localhost'
+port = 7777
 
 server = HTTPServer((host, port), MyRequestHandler)
-# 클래스 상속 아님
-# HTTPServer 인스턴스 생성, (호스트, 포트) 튜플과 요청 처리 핸들러 클래스를 인자로 전달
-
 
 try:
     print(f"서버가 시작되었습니다. http://{host}:{port} 로 접속해보세요.")
-    print("종료하려면 터미널에서 Ctrl+C를 누르세요.") # Ctrl+C는 표준적인 인터럽트 신호
+    print("종료하려면 터미널에서 Ctrl+C를 누르세요.")
     server.serve_forever()
 except KeyboardInterrupt:
     print("\n서버를 종료합니다.")
