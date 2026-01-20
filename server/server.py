@@ -2,6 +2,10 @@ from http.server import HTTPServer, BaseHTTPRequestHandler
 
 class MyRequestHandler(BaseHTTPRequestHandler):
     def do_GET(self):
+        print(f"요청 메서드: {self.command}")
+        print(f"요청 경로: {self.path}")
+        print(f"요청 헤더: \n{self.headers}")
+
         path = self.path
         
         # 1. 동적 푸터 매핑 테이블 (데이터 중심 설계)
@@ -58,6 +62,10 @@ class MyRequestHandler(BaseHTTPRequestHandler):
                 content = content.replace('{{body}}', body_content)
                 content = content.replace('{{footer}}', footer_content)
 
+                # index.html 하단에 </body> 태그 직전에 스크립트를 삽입하도록 설정합니다.
+                console_script = "<script>console.log('응답을 받았습니다: 서버 사이드에서 보낸 메시지');</script>"
+                content = content.replace('</body>', f'{console_script}</body>')
+
                 self.send_response(200)
                 self.send_header('Content-type', 'text/html; charset=utf-8')
                 self.end_headers()
@@ -89,6 +97,13 @@ class MyRequestHandler(BaseHTTPRequestHandler):
 # 서버 실행부 (기존과 동일)
 host = 'localhost'
 port = 7777
+
 server = HTTPServer((host, port), MyRequestHandler)
-print(f"서버 시작: http://{host}:{port}")
-server.serve_forever()
+
+try:
+    print(f"서버가 시작되었습니다. http://{host}:{port} 로 접속해보세요.")
+    print("종료하려면 터미널에서 Ctrl+C를 누르세요.")
+    server.serve_forever()
+except KeyboardInterrupt:
+    print("\n서버를 종료합니다.")
+    server.server_close()
