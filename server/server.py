@@ -8,7 +8,7 @@ class MyRequestHandler(BaseHTTPRequestHandler):
 
         if path == '/':
             path = '/index.html'
-        # 만약 경로가 기본페이지('/)라면 index.html을 보여주도록 설정
+        # 만약 경로가 기본페이지('/')라면 index.html을 보여주도록 설정
         
         file_path = f'client{path}'
         # 실제 파일 경로 설정(실게 서버 컴퓨터 내의 폴더 경로와 사용자가 요청한 경로를 조합)
@@ -37,11 +37,11 @@ class MyRequestHandler(BaseHTTPRequestHandler):
                 # index.html일 경우에 분리된 조각 파일들을 조립
                 if file_path == 'client/index.html':
                     # 각 컴포넌트 파일(header, body, footer)을 읽어와 각각의 변수에 저장
-                    with open('client/html/header.html', 'r', encoding='utf-8') as h:
+                    with open('client/page/header.html', 'r', encoding='utf-8') as h:
                         header_content = h.read()
-                    with open('client/html/body.html', 'r', encoding='utf-8') as b:
+                    with open('client/page/body.html', 'r', encoding='utf-8') as b:
                         body_content = b.read()
-                    with open('client/html/footer.html', 'r', encoding='utf-8') as f_low:
+                    with open('client/page/footer.html', 'r', encoding='utf-8') as f_low:
                         footer_content = f_low.read()
 
                     # 메인 파일(index.html) 내의 예약어({{...}})를 실제 파일 내용으로 갈아끼움
