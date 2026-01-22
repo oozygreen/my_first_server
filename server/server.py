@@ -66,6 +66,13 @@ class MyRequestHandler(BaseHTTPRequestHandler):
                 console_script = "<script>console.log('응답을 받았습니다: 서버 사이드에서 보낸 메시지');</script>"
                 content = content.replace('</body>', f'{console_script}</body>')
 
+                # [추가] 서버 터미널에서 응답 확인을 위한 로그 출력
+                print(f"\n--- [Server Response Out] ---")
+                print(f"상태 코드(Status): {self.responses[200][0] if file_path == 'client/index.html' else '200'}") 
+                print(f"대상 경로(Path): {path}")
+                print(f"컨텐츠 타입(Content-Type): {content_type if 'content_type' in locals() else 'text/html'}")
+                print(f"주입된 스크립트 존재 여부: {'Yes' if 'console_script' in locals() else 'No'}")
+                print(f"-----------------------------\n")
                 self.send_response(200)
                 self.send_header('Content-type', 'text/html; charset=utf-8')
                 self.end_headers()
