@@ -1,6 +1,6 @@
 # 고도화 작업
 # branch: lv.2
-# level2 브랜치랑 합쳐졌나?
+
 from http.server import HTTPServer, BaseHTTPRequestHandler
 import os
 
@@ -75,14 +75,17 @@ class MyRequestHandler(BaseHTTPRequestHandler):
             file_path = f'client{path}'
 
         # 3. 확장자 및 Content-Type 결정
-        if file_path.endswith('.html'):
-            content_type = 'text/html'
-        elif file_path.endswith('.css'):
+        # if file_path.endswith('.html'):
+        #     content_type = 'text/html'
+        # --> html은 조합해서 나중에 self.send_header('Content-type', 'text/html; charset=utf-8') 에서 정의함
+        if file_path.endswith('.css'):
             content_type = 'text/css'
-        elif file_path.endswith('.js'):
-            content_type = 'application/javascript'
-        else:
-            content_type = 'text/plain'
+        # elif file_path.endswith('.js'):
+        #     content_type = 'application/javascript'
+        # --> js는 파일로 뿌려주지 않고 html 내부에 삽입하기 때문에 삭제
+        # else:
+        #     content_type = 'text/plain'
+        # --> 굳이 필요 없음
 
         # 4. 응답 생성
         try:
