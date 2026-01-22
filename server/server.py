@@ -1,4 +1,57 @@
 from http.server import HTTPServer, BaseHTTPRequestHandler
+import os
+
+# 1. 전역 캐시
+TEMPLATE_CACHE = {}
+
+def load_templates():
+    print("--- 템플릿 파일을 메모리에 로드하고 조립합니다 ---")
+    # 1) 파일 읽기 (기존과 동일)
+    raw_files = {
+        'index': 'client/index.html',
+        'header': 'client/page/header.html',
+        'body': 'client/page/body.html',
+        'footer_default': 'client/page/footer.html',
+        'footer_01': 'client/page/bottom/footer01.html',
+        'footer_02': 'client/page/bottom/footer02.html',
+        'footer_03': 'client/page/bottom/footer03.html',
+        'footer_04': 'client/page/bottom/footer04.html',
+        'footer_05': 'client/page/bottom/footer05.html',
+        '404error': 'client/404error.html',
+        'style': 'client/css/style.css'
+    }
+    
+    file_contents = {}
+    for key, path in raw_files.items():
+        try:
+            with open(path, 'r', encoding='utf-8') as f:
+                file_contents[key] = f.read()
+        except FileNotFoundError:
+            file_contents[key] = ""
+
+    # 2) [핵심] 여기서 미리 조립합니다! (Pre-assembling)
+    # index + header + body는 항상 똑같으므로 미리 합쳐서 'base_layout'이라는 이름으로 저장합니다.
+    # 단, {{footer}} 부분은 아직 어떤 푸터가 올지 모르니 그대로 둡니다.
+    
+    base_html = file_contents['index']
+    base_html = base_html.replace('{{header}}', file_contents['header'])
+    base_html = base_html.replace('{{body}}', file_contents['body'])
+    
+    # 조립된 덩어리를 캐시에 저장
+    TEMPLATE_CACHE['base_layout'] = base_html
+    
+    # 푸터들은 나중에 골라 써야 하므로 각각 따로 캐시에 저장
+    TEMPLATE_CACHE['footer_default'] = file_contents['footer_default']
+    TEMPLATE_CACHE['footer_01'] = file_contents['footer_01']
+    TEMPLATE_CACHE['footer_02'] = file_contents['footer_02']
+    TEMPLATE_CACHE['footer_03'] = file_contents['footer_03']
+    TEMPLATE_CACHE['footer_04'] = file_contents['footer_04']
+    TEMPLATE_CACHE['footer_05'] = file_contents['footer_05']
+
+    # 404에러 페이지를 캐시에 저장
+    TEMPLATE_CACHE['404error'] = file_contents['404error']
+
+
 
 class MyRequestHandler(BaseHTTPRequestHandler):
     def do_GET(self):
@@ -8,17 +61,6 @@ class MyRequestHandler(BaseHTTPRequestHandler):
 
         path = self.path
         
-        # 1. 동적 푸터 매핑 테이블 (데이터 중심 설계)
-        # 경로(Key)에 따라 읽어올 파일(Value)을 지정합니다.
-        footer_map = {
-            '/': 'client/page/footer.html',
-            '/01': 'client/page/bottom/footer01.html',
-            '/02': 'client/page/bottom/footer02.html',
-            '/03': 'client/page/bottom/footer03.html',
-            '/04': 'client/page/bottom/footer04.html',
-            '/05': 'client/page/bottom/footer05.html',
-        }
-
         # 2. 라우팅 로직 처리
         # 사용자가 요청한 path가 매핑 테이블에 있다면, index.html을 기본 틀로 사용합니다.
         is_dynamic_route = path in footer_map
