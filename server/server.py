@@ -1,5 +1,6 @@
 # 고도화 작업
 # branch: lv.2
+# level2 브랜치랑 합쳐졌나?
 from http.server import HTTPServer, BaseHTTPRequestHandler
 import os
 
