@@ -52,6 +52,7 @@ def load_templates():
     TEMPLATE_CACHE['404error'] = file_contents['404error']
 
 
+# 브랜치 잘 된거 맞나?
 
 class MyRequestHandler(BaseHTTPRequestHandler):
     def do_GET(self):
