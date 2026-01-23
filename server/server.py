@@ -4,103 +4,164 @@ from http.server import HTTPServer, BaseHTTPRequestHandler
 # 1. HTML 및 CSS 컨텐츠 정의 (파일 대신 변수에 직접 담습니다)
 # ==============================================================================
 
-# [CSS] 스타일시트
-CSS_CONTENT = """
-* { margin: 0; padding: 0; box-sizing: border-box; }
+class make_tag:
+    def __init__(self, tag_name, content="", href=None, class_=None, style=None, **others):
+        self.tag_name = tag_name
+        self.content = content
+        
+        # 속성 정리
+        self.final_attrs = others
+        if href: self.final_attrs['href'] = href
+        if class_: self.final_attrs['class'] = class_
+        if style:
+            if isinstance(style, dict):
+                self.final_attrs['style'] = "; ".join([f"{k}: {v}" for k, v in style.items()])
+            else:
+                self.final_attrs['style'] = style
 
-/* Header */
-header { width: 100%; height: 60px; background-color: #36c; display: flex; align-items: center; justify-content: space-between; padding: 0 20px; }
-header a { color: white; text-decoration: none; display: block; padding: 10px; }
-header h1 { color: white; font-size: 30px; }
-header nav ul { list-style: none; display: flex; gap: 0px; }
-header nav ul li button { background-color: transparent; color: white; font-weight: bold; border: none; font-size: 16px; position: relative; }
-header nav ul li button::after { content: ''; display: block; width: 0; height: 2px; background-color: white; position: absolute; bottom: 0; left: 50%; transform: translateX(-50%); transition: width 0.3s; }
-header nav ul li button:hover::after { width: 100%; }
+    def render(self):
+        # 속성 문자열 생성
+        attr_str = ""
+        for key, value in self.final_attrs.items():
+            attr_str += f' {key}="{value}"'
 
-/* Body */
-.maslow-needs { min-height: calc(100vh - 60px - 160px); display: flex; align-items: center; justify-content: center; padding: 40px 0; }
-.pyramid { list-style: none; display: flex; flex-direction: column; align-items: center; justify-content: center; }
-.pyramid > li { height: 120px; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; }
-.needs-title { font-weight: bold; font-size: 20px; margin-bottom: 10px; }
-.self-actualization { width: 160px; height: 120px; background-color: transparent; position: relative; }
-.self-actualization::before { z-index: -1; display: block; content: ''; box-sizing: border-box; width: 160px; height: 120px; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background-color: transparent; border-left: 80px solid transparent; border-right: 80px solid transparent; border-bottom: 120px solid #DFF5EA; }
-.esteem { width: 320px; height: 120px; background-color: transparent; position: relative; }
-.esteem::before { z-index: -1; display: block; content: ''; box-sizing: border-box; width: 320px; height: 120px; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background-color: transparent; border-left: 80px solid transparent; border-right: 80px solid transparent; border-bottom: 120px solid #BFE6D3; }
-.love_belonging { width: 480px; height: 120px; background-color: transparent; position: relative; }
-.love_belonging::before { z-index: -1; display: block; content: ''; box-sizing: border-box; width: 480px; height: 120px; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background-color: transparent; border-left: 80px solid transparent; border-right: 80px solid transparent; border-bottom: 120px solid #9ED9D5; }
-.safety { width: 640px; height: 120px; background-color: transparent; position: relative; }
-.safety::before { z-index: -1; display: block; content: ''; box-sizing: border-box; width: 640px; height: 120px; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background-color: transparent; border-left: 80px solid transparent; border-right: 80px solid transparent; border-bottom: 120px solid #7FC9D9; }
-.physiological { width: 800px; height: 120px; background-color: transparent; position: relative; }
-.physiological::before { z-index: -1; display: block; content: ''; box-sizing: border-box; width: 800px; height: 120px; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background-color: transparent; border-left: 80px solid transparent; border-right: 80px solid transparent; border-bottom: 120px solid #A7CFEA; }
+        # 내용물(Content) 렌더링 로직 (재귀)
+        real_content = ""
+        
+        if isinstance(self.content, make_tag):
+            real_content = self.content.render()
+        elif isinstance(self.content, list): # 리스트가 들어오면 하나씩 풀어서 렌더링
+            for item in self.content:
+                if isinstance(item, make_tag):
+                    real_content += item.render()
+                else:
+                    real_content += str(item)
+        else:
+            real_content = str(self.content)
 
-/* Footer */
-footer { width: 100%; height: 160px; padding: 30px; background: #333; color: white; }
-footer .footer-title { font-size: 24px; font-weight: bold; margin-bottom: 10px; }
-footer .footer-content { font-size: 16px; line-height: 1.5; }
-"""
+        return f"<{self.tag_name}{attr_str}>{real_content}</{self.tag_name}>"
 
-# [HTML] 조각들 (Components)
-HTML_HEADER = """
-<header>
-    <h1><a href="/">매슬로우의 욕구이론</a></h1>
-    <nav>
-        <ul>
-            <li>
-                <button><a href="/01">생리적 욕구</a></button>
-            </li>
-            <li>
-                <button><a href="/02">안전 욕구</a></button>
-            </li>
-            <li>
-                <button><a href="/03">소속과 사랑의 욕구</a></button>
-            </li>
-            <li>
-                <button><a href="/04">존경의 욕구</a></button>
-            </li>
-            <li>
-                <button><a href="/05">자아실현의 욕구</a></button>
-            </li>
-        </ul>
-    </nav>
-</header>
-"""
 
-HTML_BODY = """
-<main class="maslow-needs">
-    <ul class="pyramid">
-        <li class="self-actualization">
-            <div>
-                <p class="needs-title">자아 실현의 욕구</p>
-                <p class="needs-content">자신의 잠재력을 최대한<br>개발하고자 하는 욕구</p>
-            </div>
-        </li>
-        <li class="esteem">
-            <div>
-                <p class="needs-title">존경의 욕구</p>
-                <p class="needs-content">자존감, 성취, 유능함, 자아존중 및<br>타인에게 인정받고 존중받고자 하는 욕구</p>
-            </div>
-        </li>
-        <li class="love_belonging">
-            <div>
-                <p class="needs-title">소속과 사랑의 욕구</p>
-                <p class="needs-content">다른 사람들로부터 인정을 받고 사랑받기를 원하며<br>집단에 소속하기를 바라는 욕구</p>
-            </div>
-        </li>
-        <li class="safety">
-            <div>
-                <p class="needs-title">안전 욕구</p>
-                <p class="needs-content">안전감과 안정의 욕구이며 위험과<br>공포 사고, 박탈 등으로 안전하고자 하는 욕구</p>
-            </div>
-        </li>
-        <li class="physiological">
-            <div>
-                <p class="needs-title">생리적 욕구</p>
-                <p class="needs-content">인간의 의식주와 관련된 생명을 유지하는 욕구,<br>배고픔과 갈증을 해소하려는 욕구</p>
-            </div>
-        </li>
-    </ul>
-</main>
-"""
+
+
+# 헤더 생성
+HEADER = make_tag(
+    "header",
+    style="width: 100%; height: 60px; background-color: #36c; display: flex; align-items: center; justify-content: space-between; padding: 0 20px;",
+    content=[
+        # 1. 로고
+        make_tag(
+            "h1",
+            style="color: white; font-size: 30px;",
+            content=make_tag(
+                "a",
+                stlye="color: white; text-decoration: none; display: block; padding: 10px;",
+                href="/",
+                content="매슬로우의 욕구이론"
+            )
+        ),
+
+        # 2. 메뉴
+        make_tag(
+            "nav",
+            content=make_tag(
+                "ul",
+                style="list-style: none; display: flex; gap: 0px;",
+                content=[
+                    make_tag(
+                        "li", 
+                        content=make_tag(
+                            "button", 
+                            style="background-color: transparent; color: white; font-weight: bold; border: none; font-size: 16px; position: relative;",
+                            content=make_tag(
+                                "a", 
+                                style="color: white; text-decoration: none; display: block; padding: 10px;",
+                                href=item["href"],
+                                content=item["text"]
+                            ) 
+                        )
+                    ) for item in [
+                        {"href": "/01", "text": "생리적 욕구"},
+                        {"href": "/02", "text": "안전 욕구"},
+                        {"href": "/03", "text": "소속과 사랑의 욕구"},
+                        {"href": "/04", "text": "존경의 욕구"},
+                        {"href": "/05", "text": "자아실현의 욕구"}
+                    ]
+                ]
+            )
+        )
+    ]
+)
+
+MAIN = make_tag(
+    "main",
+    class_="maslow-needs",
+    # 전체 레이아웃 잡는 스타일 (인라인)
+    style="min-height: calc(100vh - 60px - 160px); display: flex; align-items: center; justify-content: center; padding: 40px 0;",
+    content=make_tag(
+        "ul",
+        class_="pyramid",
+        # 리스트 스타일 제거 및 정렬 (인라인)
+        style="list-style: none; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 0; margin: 0;",
+        content=[
+            make_tag(
+                "li",
+                # [중요] 가상요소(도형)를 그리기 위한 클래스명 연결
+                class_=item["class"], 
+                # 개별 층의 높이와 텍스트 정렬 (인라인)
+                style="height: 120px; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; position: relative;", 
+                content=make_tag(
+                    "div",
+                    content=[
+                        # 제목
+                        make_tag(
+                            "p",
+                            class_="needs-title",
+                            style="font-weight: bold; font-size: 20px; margin-bottom: 10px; margin-top: 0;",
+                            content=item["title"]
+                        ),
+                        # 설명
+                        make_tag(
+                            "p",
+                            class_="needs-content",
+                            style="margin: 0; line-height: 1.5;",
+                            content=item["desc"]
+                        )
+                    ]
+                )
+            ) for item in [
+                # 위에서부터 아래로 내려가는 순서 (데이터 리스트)
+                {
+                    "class": "self-actualization", 
+                    "title": "자아 실현의 욕구", 
+                    "desc": "자신의 잠재력을 최대한<br>개발하고자 하는 욕구"
+                },
+                {
+                    "class": "esteem", 
+                    "title": "존경의 욕구", 
+                    "desc": "자존감, 성취, 유능함, 자아존중 및<br>타인에게 인정받고 존중받고자 하는 욕구"
+                },
+                {
+                    "class": "love_belonging", 
+                    "title": "소속과 사랑의 욕구", 
+                    "desc": "다른 사람들로부터 인정을 받고 사랑받기를 원하며<br>집단에 소속하기를 바라는 욕구"
+                },
+                {
+                    "class": "safety", 
+                    "title": "안전 욕구", 
+                    "desc": "안전감과 안정의 욕구이며 위험과<br>공포 사고, 박탈 등으로 안전하고자 하는 욕구"
+                },
+                {
+                    "class": "physiological", 
+                    "title": "생리적 욕구", 
+                    "desc": "인간의 의식주와 관련된 생명을 유지하는 욕구,<br>배고픔과 갈증을 해소하려는 욕구"
+                }
+            ]
+        ]
+    )
+)
+
+
 
 # 기본 인덱스 껍데기 (템플릿)
 HTML_INDEX_TEMPLATE = """
@@ -110,8 +171,6 @@ HTML_INDEX_TEMPLATE = """
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>매슬로우의 욕구이론</title>
-
-    <link rel="stylesheet" href="./css/style.css">
 </head>
 <body>
     <!-- header.html 영역 -->
@@ -204,13 +263,12 @@ def init_templates():
     # 1. 기본 뼈대(Base Layout) 조립: Index + Header + Body
     # (Footer는 요청마다 갈아끼우기 위해 {{footer}}로 남겨둡니다)
     base = HTML_INDEX_TEMPLATE
-    base = base.replace('{{header}}', HTML_HEADER)
-    base = base.replace('{{body}}', HTML_BODY)
+    base = base.replace('{{header}}', HEADER)
+    base = base.replace('{{body}}', MAIN)
     
     TEMPLATE_CACHE['base_layout'] = base
     
     # 2. CSS 및 404도 캐시에 등록
-    TEMPLATE_CACHE['css'] = CSS_CONTENT
     TEMPLATE_CACHE['404'] = HTML_404
     
     print("[OK] 조립 완료! 파일을 읽지 않고 변수를 사용했습니다.")
